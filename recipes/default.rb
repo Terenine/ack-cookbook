@@ -1,19 +1,9 @@
-package "ack" do
-  case node[:platform]
-  when "centos","redhat","fedora","arch"
-    package_name "ack"
-  when "debian","ubuntu"
-    package_name "ack-grep"
-  end
-  action :install
-end
-
-execute "create symlink" do
-  case node[:platform]
-  when "debian","ubuntu"
-    if !node[:ack][:symlink_as].nil? && node[:ack][:symlink_as].length > 0
-      command "ln -nsf /usr/bin/ack-grep #{node[:ack][:symlink_as]}"
-      creates "#{node[:ack][:symlink_as]}"
+ruby_block "curl_standalone_ack" do
+  block do
+    unless File.exists?("/usr/local/bin/ack")
+      curl = Chef::ShellOut.new("curl http://betterthangrep.com/ack-standalone > /usr/local/bin/ack && chmod 0755 /usr/local/bin/ack")
+      curl.run_command
     end
   end
+  action :create
 end
